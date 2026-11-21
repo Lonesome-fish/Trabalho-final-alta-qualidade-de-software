@@ -11,7 +11,7 @@ class Receipt:
     def __init__(self):
         self._items = []
         self._discounts = []
-
+        self.receipt_item_factory = ReceiptItem
     def total_price(self):
         total = 0
         for item in self.items:
@@ -21,7 +21,7 @@ class Receipt:
         return total
 
     def add_product(self, product, quantity, price, total_price):
-        self._items.append(ReceiptItem(product, quantity, price, total_price))
+        self._items.append(self.receipt_item_factory(product, quantity, price, total_price))
 
     def add_discount(self, discount):
         self._discounts.append(discount)
