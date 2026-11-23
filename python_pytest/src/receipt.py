@@ -1,4 +1,4 @@
-
+#Classe de item do recibo com produto, quantidade, preço e preço total
 class ReceiptItem:
     def __init__(self, product, quantity, price, total_price):
         self.product = product
@@ -6,7 +6,7 @@ class ReceiptItem:
         self.price = price
         self.total_price = total_price
 
-
+#Classe de recibo com itens e descontos
 class Receipt:
     def __init__(self):
         self._items = []
@@ -25,7 +25,8 @@ class Receipt:
 
     def add_discount(self, discount):
         self._discounts.append(discount)
-
+    #Properties são usados para copiar o _items e _discounts para evitar acessar as informações
+    #diretamente e modificar os valores, garantindo que a lista original permaneça inalterada.
     @property
     def items(self):
         return self._items[:]

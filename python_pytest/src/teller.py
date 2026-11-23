@@ -1,7 +1,8 @@
 from model_objects import Offer
 from receipt import Receipt
 
-
+#Teller funciona como uma espécie de caixa registradora, que verifica as ofertas e calcula o preço
+#
 class Teller:
 
     def __init__(self, catalog):
