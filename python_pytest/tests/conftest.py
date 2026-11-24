@@ -1,5 +1,5 @@
 import pytest
-from src.model_objects import Product, ProductUnit
+from model_objects import Product, ProductUnit
 from tests.fake_catalog import FakeCatalog   
 @pytest.fixture
 def catalogo_preenchido():
