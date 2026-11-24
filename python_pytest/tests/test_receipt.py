@@ -1,10 +1,10 @@
 import pytest
 
-from model_objects import Discount
-from receipt import Receipt
-from teller import Teller
-from model_objects import SpecialOfferType
-from shopping_cart import ShoppingCart
+from src.model_objects import Discount
+from src.receipt import Receipt
+from src.teller import Teller
+from src.model_objects import SpecialOfferType
+from src.shopping_cart import ShoppingCart
 
 
 def test_empty_receipt_has_zero_total():
