@@ -1,4 +1,4 @@
-from model_objects import Offer
+from discount_strategies import DiscountStrategyFactory
 from receipt import Receipt
 
 
@@ -6,10 +6,11 @@ class Teller:
 
     def __init__(self, catalog):
         self.catalog = catalog
-        self.offers = {}
+        self.offers = []
 
     def add_special_offer(self, offer_type, product, argument):
-        self.offers[product] = Offer(offer_type, product, argument)
+        strategy = DiscountStrategyFactory.create_strategy(offer_type, product, argument)
+        self.offers.append(strategy)
 
     def checks_out_articles_from(self, the_cart):
         receipt = Receipt()
