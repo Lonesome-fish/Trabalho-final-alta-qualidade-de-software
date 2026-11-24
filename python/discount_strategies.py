@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import math
-from model_objects import Discount, SpecialOfferType
+from model_objects import Discount, Product, ProductUnit, SpecialOfferType
 
 
 class DiscountStrategy(ABC):
@@ -83,3 +83,28 @@ class DiscountStrategyFactory:
         if not creator:
             raise ValueError(f"Tipo de oferta desconhecido: {offer_type}")
         return creator()
+
+
+class ComboDiscountStrategy(DiscountStrategy):
+    """Aplica desconto percentual apenas para conjuntos completos de produtos."""
+    def __init__(self, products: list, percentage: float = 10.0):
+        self.products = products
+        self.percentage = percentage
+
+    def calculate_discount(self, product_quantities: dict, catalog) -> Discount | None:
+        # 1. Verifica se TODOS os produtos do combo estão no carrinho
+        if not self.products or any(p not in product_quantities for p in self.products):
+            return None
+
+        # 2. Quantidade de combos completos = menor quantidade inteira entre os itens
+        complete_combos = min(int(product_quantities[p]) for p in self.products)
+        if complete_combos <= 0:
+            return None
+
+        # 3. Soma o preço unitário de cada item do combo e aplica o percentual
+        combo_unit_total = sum(catalog.unit_price(p) for p in self.products)
+        discount_amount = complete_combos * combo_unit_total * (self.percentage / 100.0)
+
+        combo_name = " + ".join(p.name for p in self.products)
+        combo_product = Product(combo_name, ProductUnit.EACH)
+        return Discount(combo_product, f"Combo {self.percentage}% off", -discount_amount)    
