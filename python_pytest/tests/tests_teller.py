@@ -1,5 +1,5 @@
-from src.teller import Teller
-from src.model_objects import SpecialOfferType
+from teller import Teller
+from model_objects import SpecialOfferType
 def test_teller_adds_special_offer(catalogo_preenchido):
     catalog, toothbrush, _ = catalogo_preenchido
     teller = Teller(catalog)

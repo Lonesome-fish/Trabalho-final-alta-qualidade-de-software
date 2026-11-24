@@ -1,5 +1,5 @@
-from src.model_objects import ProductUnit
-from src.receipt import Receipt
+from model_objects import ProductUnit
+from receipt import Receipt
 from tests.receipt_printer import ReceiptPrinter
 import pytest
 @pytest.mark.parametrize(

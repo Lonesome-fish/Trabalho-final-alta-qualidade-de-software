@@ -1,8 +1,8 @@
 import pytest
 
-from src.model_objects import SpecialOfferType
-from src.shopping_cart import ShoppingCart
-from src.teller import Teller
+from model_objects import SpecialOfferType
+from shopping_cart import ShoppingCart
+from teller import Teller
 
 
 @pytest.mark.parametrize(
