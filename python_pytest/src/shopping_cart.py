@@ -1,4 +1,3 @@
-from discount_strategies import DiscountCalculator
 from model_objects import ProductQuantity
 
 
@@ -7,6 +6,7 @@ class ShoppingCart:
     def __init__(self):
         self._items = []
         self._product_quantities = {}
+        self.product_quantity_factory = ProductQuantity
 
     @property
     def items(self):
@@ -20,14 +20,8 @@ class ShoppingCart:
         return self._product_quantities
 
     def add_item_quantity(self, product, quantity):
-        self._items.append(ProductQuantity(product, quantity))
-        if product in self._product_quantities:
+        self._items.append(self.product_quantity_factory(product, quantity))
+        if product in self._product_quantities.keys():
             self._product_quantities[product] = self._product_quantities[product] + quantity
         else:
             self._product_quantities[product] = quantity
-
-    def handle_offers(self, receipt, offers, catalog, combo_offers=None):
-        calculator = DiscountCalculator()
-        calculator.apply_offers(
-            receipt, self._product_quantities, offers, catalog, combo_offers
-        )
