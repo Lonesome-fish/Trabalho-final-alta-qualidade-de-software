@@ -1,16 +1,15 @@
-from model_objects import Offer
+from discount_strategies import DiscountStrategy
 from receipt import Receipt
 
-#Teller funciona como uma espécie de caixa registradora, que verifica as ofertas e calcula o preço
-#
+
 class Teller:
 
     def __init__(self, catalog):
         self.catalog = catalog
-        self.offers = {}
+        self.offers: list[DiscountStrategy] = []
 
-    def add_special_offer(self, offer_type, product, argument):
-        self.offers[product] = Offer(offer_type, product, argument)
+    def add_special_offer(self, strategy: DiscountStrategy) -> None:
+        self.offers.append(strategy)
 
     def checks_out_articles_from(self, the_cart):
         receipt = Receipt()
@@ -25,6 +24,3 @@ class Teller:
         the_cart.handle_offers(receipt, self.offers, self.catalog)
 
         return receipt
-
-    def product_with_name(self, name):
-        return self.catalog.products.get(name, None)
