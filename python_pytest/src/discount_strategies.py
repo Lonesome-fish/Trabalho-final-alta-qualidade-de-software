@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from model_objects import Discount, Product, ProductUnit, SpecialOfferType
 
@@ -119,17 +121,21 @@ class ComboDiscountStrategy(DiscountStrategy):
 
 
 class DiscountStrategyFactory:
+    # Cada tipo de oferta aponta para a função que cria sua estratégia.
+    # Um tipo novo de oferta entra como uma linha nova, sem cadeia de if.
+    _creators = {
+        SpecialOfferType.THREE_FOR_TWO: lambda product, argument: ThreeForTwoStrategy(product),
+        SpecialOfferType.TEN_PERCENT_DISCOUNT: lambda product, argument: PercentageDiscountStrategy(product, argument),
+        SpecialOfferType.TWO_FOR_AMOUNT: lambda product, argument: XForAmountStrategy(product, 2, argument),
+        SpecialOfferType.FIVE_FOR_AMOUNT: lambda product, argument: XForAmountStrategy(product, 5, argument),
+    }
+
     @staticmethod
     def create_strategy(offer_type, product: Product, argument) -> DiscountStrategy:
-        if offer_type == SpecialOfferType.THREE_FOR_TWO:
-            return ThreeForTwoStrategy(product)
-        if offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT:
-            return PercentageDiscountStrategy(product, argument)
-        if offer_type == SpecialOfferType.TWO_FOR_AMOUNT:
-            return XForAmountStrategy(product, 2, argument)
-        if offer_type == SpecialOfferType.FIVE_FOR_AMOUNT:
-            return XForAmountStrategy(product, 5, argument)
-        return NoDiscountStrategy()
+        creator = DiscountStrategyFactory._creators.get(offer_type)
+        if creator is None:
+            return NoDiscountStrategy()
+        return creator(product, argument)
 
 
 class DiscountCalculator:

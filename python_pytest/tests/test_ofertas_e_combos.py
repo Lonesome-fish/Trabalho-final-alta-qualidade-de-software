@@ -52,7 +52,7 @@ class SupermarketTest(unittest.TestCase):
         # Sem desconto: 2*1.00 + 1*2.00 = 4.00
         # Desconto de 10% sobre 1 combo (1.00 + 2.00 = 3.00): -0.30
         # Total esperado: 3.70
-        assert pytest.approx(receipt.total_price(), 0.01) == 3.70
+        assert receipt.total_price() == pytest.approx(3.70, abs=0.001)
         assert len(receipt.discounts) == 1
     def test_three_for_two_discount(self):
         catalog = FakeCatalog()
@@ -67,7 +67,7 @@ class SupermarketTest(unittest.TestCase):
 
         receipt = teller.checks_out_articles_from(cart)
 
-        assert pytest.approx(receipt.total_price(), 0.01) == 2.00
+        assert receipt.total_price() == pytest.approx(2.00, abs=0.001)
         assert len(receipt.discounts) == 1
 
     def test_two_for_amount_discount(self):
@@ -83,7 +83,7 @@ class SupermarketTest(unittest.TestCase):
 
         receipt = teller.checks_out_articles_from(cart)
 
-        assert pytest.approx(receipt.total_price(), 0.01) == 0.99
+        assert receipt.total_price() == pytest.approx(0.99, abs=0.001)
         assert len(receipt.discounts) == 1
 
     def test_five_for_amount_discount(self):
@@ -99,7 +99,7 @@ class SupermarketTest(unittest.TestCase):
 
         receipt = teller.checks_out_articles_from(cart)
 
-        assert pytest.approx(receipt.total_price(), 0.01) == 7.49
+        assert receipt.total_price() == pytest.approx(7.49, abs=0.001)
         assert len(receipt.discounts) == 1
 
     def test_combo_incomplete_no_discount(self):
@@ -117,7 +117,7 @@ class SupermarketTest(unittest.TestCase):
 
         receipt = teller.checks_out_articles_from(cart)
 
-        assert pytest.approx(receipt.total_price(), 0.01) == 2.00
+        assert receipt.total_price() == pytest.approx(2.00, abs=0.001)
         assert len(receipt.discounts) == 0
 
     def test_multiple_complete_combos(self):
@@ -138,7 +138,7 @@ class SupermarketTest(unittest.TestCase):
 
         # Sem desconto: 2*1.00 + 3*2.00 = 8.00
         # 10% sobre 2 combos (2 * 3.00 = 6.00): -0.60 -> Total: 7.40
-        assert pytest.approx(receipt.total_price(), 0.01) == 7.40
+        assert receipt.total_price() == pytest.approx(7.40, abs=0.001)
         assert len(receipt.discounts) == 1 
 
     def test_teller_offers_preserves_dict_interface(self):
@@ -168,7 +168,7 @@ class SupermarketTest(unittest.TestCase):
         receipt = teller.checks_out_articles_from(cart)
 
         # Apenas a última oferta (10%) deve valer: 30.00 - 3.00 = 27.00
-        assert pytest.approx(receipt.total_price(), 0.01) == 27.00
+        assert receipt.total_price() == pytest.approx(27.00, abs=0.001)
         assert len(receipt.discounts) == 1
 
     def test_discounts_follow_cart_insertion_order(self):
@@ -223,7 +223,7 @@ class SupermarketTest(unittest.TestCase):
         receipt = teller.checks_out_articles_from(cart)
 
         # 1 escova + 1 creme fecham o combo (-2.50); não sobra escova para o 10% individual
-        assert pytest.approx(receipt.total_price(), 0.01) == 22.50
+        assert receipt.total_price() == pytest.approx(22.50, abs=0.001)
         assert len(receipt.discounts) == 1
 
     def test_combo_and_three_for_two_do_not_reuse_same_unit(self):
@@ -244,7 +244,7 @@ class SupermarketTest(unittest.TestCase):
         receipt = teller.checks_out_articles_from(cart)
 
         # Bruto: 4*10 + 15 = 55.00 | Combo: -2.50 | 3 por 2 nas 3 restantes: -10.00 -> 42.50
-        assert pytest.approx(receipt.total_price(), 0.01) == 42.50
+        assert receipt.total_price() == pytest.approx(42.50, abs=0.001)
         assert len(receipt.discounts) == 2
 
     def test_two_overlapping_combos_do_not_reuse_same_product_unit(self):
@@ -268,7 +268,7 @@ class SupermarketTest(unittest.TestCase):
         receipt = teller.checks_out_articles_from(cart)
 
         # Apenas o primeiro combo usa a única escova (-2.50); o segundo não aplica
-        assert pytest.approx(receipt.total_price(), 0.01) == 27.50
+        assert receipt.total_price() == pytest.approx(27.50, abs=0.001)
         assert len(receipt.discounts) == 1
 
     def test_invalid_combo_offers_raise_value_error(self):
@@ -319,4 +319,4 @@ class SupermarketTest(unittest.TestCase):
             total_with = teller_with_combo.checks_out_articles_from(cart_b).total_price()
 
             assert total_with <= total_without
-            assert pytest.approx(total_with, 0.01) == expected_total        
+            assert total_with == pytest.approx(expected_total, abs=0.001)
