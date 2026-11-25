@@ -1,6 +1,4 @@
-import math
-
-from model_objects import ProductQuantity, SpecialOfferType, Discount
+from model_objects import ProductQuantity
 
 
 class ShoppingCart:
@@ -27,9 +25,3 @@ class ShoppingCart:
             self._product_quantities[product] = self._product_quantities[product] + quantity
         else:
             self._product_quantities[product] = quantity
-
-    def handle_offers(self, receipt, offers, catalog):
-        for strategy in offers:
-            discount = strategy.calculate_discount(self._product_quantities, catalog)
-            if discount:
-                receipt.add_discount(discount)
