@@ -1,19 +1,22 @@
 import pytest
 
-from model_objects import Product, SpecialOfferType, ProductUnit
-from discount_strategies import PercentageDiscountStrategy
+from model_objects import SpecialOfferType
 from shopping_cart import ShoppingCart
 from teller import Teller
-from tests.fake_catalog import FakeCatalog
 
 
-def test_ten_percent_discount():
-    catalog = FakeCatalog()
-    toothbrush = Product("toothbrush", ProductUnit.EACH)
-    catalog.add_product(toothbrush, 0.99)
-    apples = Product("apples", ProductUnit.KILO)
-    catalog.add_product(apples, 1.99)
-
+@pytest.mark.parametrize(
+    "quantidade, total_esperado",
+    [
+        (0.5, 0.995),
+        (1.0, 1.99),
+        (2.5, 4.975),
+        (3.0, 5.97),
+        (5.0, 9.95),
+    ],
+)
+def test_ten_percent_discount(catalogo_preenchido, quantidade, total_esperado):
+    catalog, toothbrush, apples = catalogo_preenchido
     teller = Teller(catalog)
     
     teller.add_special_offer(PercentageDiscountStrategy(toothbrush, 10.0))
