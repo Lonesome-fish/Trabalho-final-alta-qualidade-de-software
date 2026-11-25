@@ -1,8 +1,10 @@
-from discount_strategies import ComboDiscountStrategy, DiscountCalculator
+from discount_strategies import ComboDiscountStrategy, DiscountCalculator, DiscountStrategy
 from model_objects import Offer
 from receipt import Receipt
 
 
+#Teller funciona como uma caixa registradora: registra ofertas e combos e faz o checkout.
+#Ele orquestra o processo; o cálculo dos descontos fica com o DiscountCalculator.
 class Teller:
 
     def __init__(self, catalog, discount_calculator=None):
@@ -13,7 +15,7 @@ class Teller:
 
     def add_special_offer(self, offer_or_type, product=None, argument=None) -> None:
         """Registra uma oferta legada ou uma DiscountStrategy diretamente."""
-        if product is None and hasattr(offer_or_type, "product"):
+        if isinstance(offer_or_type, DiscountStrategy):
             self.offers[offer_or_type.product] = offer_or_type
             return
         self.offers[product] = Offer(offer_or_type, product, argument)
@@ -24,13 +26,11 @@ class Teller:
 
     def checks_out_articles_from(self, the_cart):
         receipt = Receipt()
-        product_quantities = the_cart.items
-        for pq in product_quantities:
-            p = pq.product
-            quantity = pq.quantity
-            unit_price = self.catalog.unit_price(p)
-            price = quantity * unit_price
-            receipt.add_product(p, quantity, unit_price, price)
+        for product_quantity in the_cart.items:
+            product = product_quantity.product
+            quantity = product_quantity.quantity
+            unit_price = self.catalog.unit_price(product)
+            receipt.add_product(product, quantity, unit_price, quantity * unit_price)
 
         discounts = self.discount_calculator.calculate_discounts(
             the_cart.product_quantities,
