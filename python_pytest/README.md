@@ -13,3 +13,11 @@ The starting position for this exercise contains the code for setting up the Tel
 - make a venv
 - install requirements, e.g. `python -m pip install -r requirements.txt`
 - use pytest to run the tests
+
+## Descontos e combos
+
+- As ofertas ficam em `src/discount_strategies.py` (Strategy + Factory).
+- Combo: `teller.add_combo_offer([escova, creme])` dá 10% sobre os conjuntos completos.
+- Nenhuma unidade recebe dois descontos, e o sistema escolhe a combinação mais barata para o cliente.
+
+Para rodar os testes, dentro de `python_pytest/`: `python -m pytest`
