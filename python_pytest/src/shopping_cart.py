@@ -1,4 +1,3 @@
-from discount_strategies import DiscountCalculator
 from model_objects import ProductQuantity
 
 
@@ -25,9 +24,3 @@ class ShoppingCart:
             self._product_quantities[product] = self._product_quantities[product] + quantity
         else:
             self._product_quantities[product] = quantity
-
-    def handle_offers(self, receipt, offers, catalog, combo_offers=None):
-        calculator = DiscountCalculator()
-        calculator.apply_offers(
-            receipt, self._product_quantities, offers, catalog, combo_offers
-        )

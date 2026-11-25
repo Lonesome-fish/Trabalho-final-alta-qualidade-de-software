@@ -139,7 +139,7 @@ class DiscountStrategyFactory:
 
 
 class DiscountCalculator:
-    """Calcula e aplica descontos sem reutilizar unidades e escolhendo o melhor cenário."""
+    """Calcula descontos sem reutilizar unidades e escolhe o melhor cenário."""
 
     @staticmethod
     def _consume_units(remaining_quantities: dict, consumed: dict) -> None:
@@ -190,14 +190,13 @@ class DiscountCalculator:
                 self._consume_units(remaining_quantities, consumed)
         return discounts
 
-    def apply_offers(
+    def calculate_discounts(
         self,
-        receipt,
         product_quantities: dict,
         offers: dict,
         catalog,
         combo_offers: dict | None = None,
-    ) -> None:
+    ) -> list[Discount]:
         cart_order = list(product_quantities.keys())
 
         # Cenário 1: ofertas individuais primeiro, combos nas unidades sobrantes
@@ -223,5 +222,4 @@ class DiscountCalculator:
             ):
                 best_discounts = discounts_combos_first
 
-        for discount in best_discounts:
-            receipt.add_discount(discount)
+        return best_discounts

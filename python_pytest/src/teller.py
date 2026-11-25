@@ -1,4 +1,4 @@
-from discount_strategies import ComboDiscountStrategy
+from discount_strategies import ComboDiscountStrategy, DiscountCalculator
 from model_objects import Offer
 from receipt import Receipt
 
@@ -6,8 +6,9 @@ from receipt import Receipt
 #
 class Teller:
 
-    def __init__(self, catalog):
+    def __init__(self, catalog, discount_calculator=None):
         self.catalog = catalog
+        self.discount_calculator = discount_calculator or DiscountCalculator()
         self.offers = {}
         self.combo_offers = {}
 
@@ -28,7 +29,14 @@ class Teller:
             price = quantity * unit_price
             receipt.add_product(p, quantity, unit_price, price)
 
-        the_cart.handle_offers(receipt, self.offers, self.catalog, self.combo_offers)
+        discounts = self.discount_calculator.calculate_discounts(
+            the_cart.product_quantities,
+            self.offers,
+            self.catalog,
+            self.combo_offers,
+        )
+        for discount in discounts:
+            receipt.add_discount(discount)
 
         return receipt
 

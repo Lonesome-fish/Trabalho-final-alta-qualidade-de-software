@@ -8,6 +8,11 @@ from tests.fake_catalog import FakeCatalog
 
 
 class SupermarketTest(unittest.TestCase):
+    def test_shopping_cart_does_not_calculate_offers(self):
+        cart = ShoppingCart()
+
+        assert not hasattr(cart, "handle_offers")
+
     def test_ten_percent_discount(self):
         catalog = FakeCatalog()
         toothbrush = Product("toothbrush", ProductUnit.EACH)
