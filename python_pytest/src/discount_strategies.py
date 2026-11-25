@@ -41,7 +41,7 @@ class ThreeForTwoStrategy(DiscountStrategy):
             return None, {}
         price = catalog.unit_price(self.product)
         groups = quantity_as_int // 3
-        amount = quantity * price - (groups * 2 * price + quantity_as_int % 3 * price)
+        amount = groups * price
         return Discount(self.product, "3 for 2", -amount), {self.product: groups * 3}
 
 
@@ -56,8 +56,7 @@ class XForAmountStrategy(DiscountStrategy):
             return None, {}
         price = catalog.unit_price(self.product)
         groups = quantity_as_int // self.required_quantity
-        total = self.target_amount * groups + quantity_as_int % self.required_quantity * price
-        amount = price * quantity - total
+        amount = groups * (self.required_quantity * price - self.target_amount)
         return Discount(self.product, f"{self.required_quantity} for {self.target_amount}", -amount), {self.product: groups * self.required_quantity}
 
 

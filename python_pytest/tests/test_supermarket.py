@@ -1,5 +1,6 @@
 import pytest
 
+from discount_strategies import PercentageDiscountStrategy
 from model_objects import SpecialOfferType
 from shopping_cart import ShoppingCart
 from teller import Teller
@@ -16,9 +17,30 @@ from teller import Teller
     ],
 )
 def test_ten_percent_discount(catalogo_preenchido, quantidade, total_esperado):
+    """Oferta na escova, cliente leva só maçã: nenhum desconto é aplicado."""
     catalog, toothbrush, apples = catalogo_preenchido
     teller = Teller(catalog)
-    
+    teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0)
+
+    cart = ShoppingCart()
+    cart.add_item_quantity(apples, quantidade)
+
+    receipt = teller.checks_out_articles_from(cart)
+
+    assert receipt.total_price() == pytest.approx(total_esperado, abs=0.001)
+    assert receipt.discounts == []
+    assert len(receipt.items) == 1
+    receipt_item = receipt.items[0]
+    assert receipt_item.product == apples
+    assert receipt_item.price == 1.99
+    assert receipt_item.total_price == pytest.approx(quantidade * 1.99, abs=0.001)
+    assert receipt_item.quantity == quantidade
+
+
+def test_ten_percent_discount_on_offered_product(catalogo_preenchido):
+    """A estratégia também pode ser registrada diretamente no Teller."""
+    catalog, toothbrush, _ = catalogo_preenchido
+    teller = Teller(catalog)
     teller.add_special_offer(PercentageDiscountStrategy(toothbrush, 10.0))
 
     cart = ShoppingCart()
@@ -26,11 +48,5 @@ def test_ten_percent_discount(catalogo_preenchido, quantidade, total_esperado):
 
     receipt = teller.checks_out_articles_from(cart)
 
-    assert 0.891 == pytest.approx(receipt.total_price(), 0.01)
-    assert [] != receipt.discounts
-    assert 1 == len(receipt.items)
-    receipt_item = receipt.items[0]
-    assert toothbrush == receipt_item.product
-    assert 0.99 == receipt_item.price
-    assert 1 * 0.99 == pytest.approx(receipt_item.total_price, 0.01)
-    assert 1 == receipt_item.quantity
+    assert receipt.total_price() == pytest.approx(0.891, abs=0.001)
+    assert len(receipt.discounts) == 1

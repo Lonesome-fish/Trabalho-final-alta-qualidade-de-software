@@ -2,6 +2,7 @@ from catalog import SupermarketCatalog
 
 
 class FakeCatalog(SupermarketCatalog):
+
     def __init__(self):
         self.products = {}
         self.prices = {}
@@ -13,3 +14,5 @@ class FakeCatalog(SupermarketCatalog):
     def unit_price(self, product):
         return self.prices[product.name]
 
+    def product_with_name(self, name):
+        return self.products.get(name, None)
