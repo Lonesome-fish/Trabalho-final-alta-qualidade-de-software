@@ -1,4 +1,5 @@
-from discount_strategies import ComboDiscountStrategy, DiscountStrategyFactory
+from discount_strategies import ComboDiscountStrategy
+from model_objects import Offer
 from receipt import Receipt
 
 
@@ -10,8 +11,7 @@ class Teller:
         self.combo_offers = {}
 
     def add_special_offer(self, offer_type, product, argument):
-        strategy = DiscountStrategyFactory.create_strategy(offer_type, product, argument)
-        self.offers[product] = strategy
+        self.offers[product] = Offer(offer_type, product, argument)
 
     def add_combo_offer(self, products: list, percentage: float = 10.0):
         strategy = ComboDiscountStrategy(products, percentage)

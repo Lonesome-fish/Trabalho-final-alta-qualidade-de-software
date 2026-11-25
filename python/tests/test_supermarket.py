@@ -191,3 +191,95 @@ class SupermarketTest(unittest.TestCase):
         receipt = teller.checks_out_articles_from(cart)
 
         assert [d.product for d in receipt.discounts] == [toothbrush, toothpaste]           
+
+    def test_teller_offers_stores_native_offer_objects(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 10.00)
+
+        teller = Teller(catalog)
+        teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0)
+
+        offer = teller.offers[toothbrush]
+        assert offer.offer_type == SpecialOfferType.TEN_PERCENT_DISCOUNT
+        assert offer.product == toothbrush
+        assert offer.argument == 10.0
+
+    def test_combo_and_individual_percentage_offer_do_not_double_discount(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        toothpaste = Product("toothpaste", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 10.00)
+        catalog.add_product(toothpaste, 15.00)
+
+        teller = Teller(catalog)
+        teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0)
+        teller.add_combo_offer([toothbrush, toothpaste], percentage=10.0)
+
+        cart = ShoppingCart()
+        cart.add_item_quantity(toothbrush, 1)
+        cart.add_item_quantity(toothpaste, 1)
+
+        receipt = teller.checks_out_articles_from(cart)
+
+        # 1 escova + 1 creme fecham o combo (-2.50); não sobra escova para o 10% individual
+        assert pytest.approx(receipt.total_price(), 0.01) == 22.50
+        assert len(receipt.discounts) == 1
+
+    def test_combo_and_three_for_two_do_not_reuse_same_unit(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        toothpaste = Product("toothpaste", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 10.00)
+        catalog.add_product(toothpaste, 15.00)
+
+        teller = Teller(catalog)
+        teller.add_special_offer(SpecialOfferType.THREE_FOR_TWO, toothbrush, None)
+        teller.add_combo_offer([toothbrush, toothpaste], percentage=10.0)
+
+        cart = ShoppingCart()
+        cart.add_item_quantity(toothbrush, 4)  # 1 vai para o combo, 3 restantes fecham o 3 por 2
+        cart.add_item_quantity(toothpaste, 1)
+
+        receipt = teller.checks_out_articles_from(cart)
+
+        # Bruto: 4*10 + 15 = 55.00 | Combo: -2.50 | 3 por 2 nas 3 restantes: -10.00 -> 42.50
+        assert pytest.approx(receipt.total_price(), 0.01) == 42.50
+        assert len(receipt.discounts) == 2
+
+    def test_two_overlapping_combos_do_not_reuse_same_product_unit(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        toothpaste = Product("toothpaste", ProductUnit.EACH)
+        floss = Product("floss", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 10.00)
+        catalog.add_product(toothpaste, 15.00)
+        catalog.add_product(floss, 5.00)
+
+        teller = Teller(catalog)
+        teller.add_combo_offer([toothbrush, toothpaste], percentage=10.0)
+        teller.add_combo_offer([toothbrush, floss], percentage=10.0)
+
+        cart = ShoppingCart()
+        cart.add_item_quantity(toothbrush, 1)
+        cart.add_item_quantity(toothpaste, 1)
+        cart.add_item_quantity(floss, 1)
+
+        receipt = teller.checks_out_articles_from(cart)
+
+        # Apenas o primeiro combo usa a única escova (-2.50); o segundo não aplica
+        assert pytest.approx(receipt.total_price(), 0.01) == 27.50
+        assert len(receipt.discounts) == 1
+
+    def test_invalid_combo_offers_raise_value_error(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 10.00)
+
+        teller = Teller(catalog)
+
+        with pytest.raises(ValueError):
+            teller.add_combo_offer([toothbrush])
+
+        with pytest.raises(ValueError):
+            teller.add_combo_offer([toothbrush, toothbrush])
