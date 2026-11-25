@@ -36,6 +36,9 @@ pip-audit -r requirements.txt
 safety scan          # exige login gratuito na Safety CLI
 ```
 
+As saídas do Bandit antes e depois da refatoração estão em `python_pytest/seguranca/`.
+Em `src/` não houve achados; em `tests/` só aparece B101 (uso de `assert`), que é esperado no pytest.
+
 ## Estrutura
 
 ```

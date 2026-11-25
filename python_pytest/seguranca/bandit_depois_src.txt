@@ -1,0 +1,31 @@
+# Bandit DEPOIS - src/ (commit 9c21bc7)
+# ferramentas: bandit 1.9.4 | pip-audit 2.10.1 | safety 3.8.1 | Python 3.12.10 | Windows 10 | 2026-11-25 18:17
+# comando: bandit -r src
+
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.12.10
+Run started:2026-11-25 21:17:33.061189+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 250
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+Files skipped (0):
