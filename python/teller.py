@@ -6,15 +6,16 @@ class Teller:
 
     def __init__(self, catalog):
         self.catalog = catalog
-        self.offers = []
+        self.offers = {}
+        self.combo_offers = {}
 
     def add_special_offer(self, offer_type, product, argument):
         strategy = DiscountStrategyFactory.create_strategy(offer_type, product, argument)
-        self.offers.append(strategy)
+        self.offers[product] = strategy
 
     def add_combo_offer(self, products: list, percentage: float = 10.0):
         strategy = ComboDiscountStrategy(products, percentage)
-        self.offers.append(strategy)
+        self.combo_offers[frozenset(products)] = strategy
 
     def checks_out_articles_from(self, the_cart):
         receipt = Receipt()
@@ -26,6 +27,6 @@ class Teller:
             price = quantity * unit_price
             receipt.add_product(p, quantity, unit_price, price)
 
-        the_cart.handle_offers(receipt, self.offers, self.catalog)
+        the_cart.handle_offers(receipt, self.offers, self.catalog, self.combo_offers)
 
         return receipt

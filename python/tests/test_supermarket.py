@@ -139,4 +139,55 @@ class SupermarketTest(unittest.TestCase):
         # Sem desconto: 2*1.00 + 3*2.00 = 8.00
         # 10% sobre 2 combos (2 * 3.00 = 6.00): -0.60 -> Total: 7.40
         assert pytest.approx(receipt.total_price(), 0.01) == 7.40
-        assert len(receipt.discounts) == 1        
+        assert len(receipt.discounts) == 1 
+
+    def test_teller_offers_preserves_dict_interface(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 1.00)
+
+        teller = Teller(catalog)
+        teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0)
+
+        assert isinstance(teller.offers, dict)
+        assert toothbrush in teller.offers
+        assert list(teller.offers.keys()) == [toothbrush]
+
+    def test_second_offer_on_same_product_overwrites_first(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 10.00)
+
+        teller = Teller(catalog)
+        teller.add_special_offer(SpecialOfferType.THREE_FOR_TWO, toothbrush, None)
+        teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0)
+
+        cart = ShoppingCart()
+        cart.add_item_quantity(toothbrush, 3)
+
+        receipt = teller.checks_out_articles_from(cart)
+
+        # Apenas a última oferta (10%) deve valer: 30.00 - 3.00 = 27.00
+        assert pytest.approx(receipt.total_price(), 0.01) == 27.00
+        assert len(receipt.discounts) == 1
+
+    def test_discounts_follow_cart_insertion_order(self):
+        catalog = FakeCatalog()
+        toothbrush = Product("toothbrush", ProductUnit.EACH)
+        toothpaste = Product("toothpaste", ProductUnit.EACH)
+        catalog.add_product(toothbrush, 1.00)
+        catalog.add_product(toothpaste, 2.00)
+
+        teller = Teller(catalog)
+        # Cadastra toothpaste primeiro, toothbrush depois
+        teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothpaste, 10.0)
+        teller.add_special_offer(SpecialOfferType.TEN_PERCENT_DISCOUNT, toothbrush, 10.0)
+
+        cart = ShoppingCart()
+        # Adiciona toothbrush primeiro no carrinho, toothpaste depois
+        cart.add_item_quantity(toothbrush, 1)
+        cart.add_item_quantity(toothpaste, 1)
+
+        receipt = teller.checks_out_articles_from(cart)
+
+        assert [d.product for d in receipt.discounts] == [toothbrush, toothpaste]           
