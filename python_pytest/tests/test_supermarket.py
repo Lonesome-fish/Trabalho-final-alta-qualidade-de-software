@@ -1,5 +1,7 @@
 import pytest
-
+from discount_strategies import PercentageDiscountStrategy
+from model_objects import Product, ProductUnit, SpecialOfferType
+from shopping_cart import ShoppingCart
 from model_objects import SpecialOfferType
 from shopping_cart import ShoppingCart
 from teller import Teller
