@@ -133,7 +133,7 @@ class DiscountStrategyFactory:
 
 
 class DiscountCalculator:
-    """Calcula e aplica descontos sem reutilizar a mesma unidade de produto."""
+    """Calcula e aplica descontos sem reutilizar unidades e escolhendo o melhor cenário."""
 
     @staticmethod
     def _consume_units(remaining_quantities: dict, consumed: dict) -> None:
@@ -143,29 +143,15 @@ class DiscountCalculator:
                     0, remaining_quantities[product] - used_qty
                 )
 
-    def apply_offers(
+    def _calculate_individual_offers(
         self,
-        receipt,
-        product_quantities: dict,
+        remaining_quantities: dict,
+        cart_order: list,
         offers: dict,
         catalog,
-        combo_offers: dict | None = None,
-    ) -> None:
-        # Cópia local para não mutar o estado interno do ShoppingCart
-        remaining_quantities = dict(product_quantities)
-
-        # 1. Aplica combos completos primeiro, consumindo 1 unidade de cada item por combo
-        if combo_offers:
-            for combo_strategy in combo_offers.values():
-                discount, consumed = combo_strategy.calculate_discount(
-                    remaining_quantities, catalog
-                )
-                if discount:
-                    receipt.add_discount(discount)
-                    self._consume_units(remaining_quantities, consumed)
-
-        # 2. Aplica ofertas individuais na ordem de inserção dos produtos no carrinho
-        for product in product_quantities.keys():
+    ) -> list[Discount]:
+        discounts = []
+        for product in cart_order:
             if product in offers:
                 offer = offers[product]
                 strategy = DiscountStrategyFactory.create_strategy(
@@ -175,5 +161,61 @@ class DiscountCalculator:
                     remaining_quantities, catalog
                 )
                 if discount:
-                    receipt.add_discount(discount)
+                    discounts.append(discount)
                     self._consume_units(remaining_quantities, consumed)
+        return discounts
+
+    def _calculate_combo_offers(
+        self,
+        remaining_quantities: dict,
+        combo_offers: dict | None,
+        catalog,
+    ) -> list[Discount]:
+        discounts = []
+        if not combo_offers:
+            return discounts
+
+        for combo_strategy in combo_offers.values():
+            discount, consumed = combo_strategy.calculate_discount(
+                remaining_quantities, catalog
+            )
+            if discount:
+                discounts.append(discount)
+                self._consume_units(remaining_quantities, consumed)
+        return discounts
+
+    def apply_offers(
+        self,
+        receipt,
+        product_quantities: dict,
+        offers: dict,
+        catalog,
+        combo_offers: dict | None = None,
+    ) -> None:
+        cart_order = list(product_quantities.keys())
+
+        # Cenário 1: ofertas individuais primeiro, combos nas unidades sobrantes
+        rem_offers_first = dict(product_quantities)
+        best_discounts = self._calculate_individual_offers(
+            rem_offers_first, cart_order, offers, catalog
+        ) + self._calculate_combo_offers(
+            rem_offers_first, combo_offers, catalog
+        )
+
+        # Cenário 2: combos primeiro, ofertas individuais nas unidades sobrantes
+        if combo_offers:
+            rem_combos_first = dict(product_quantities)
+            discounts_combos_first = self._calculate_combo_offers(
+                rem_combos_first, combo_offers, catalog
+            ) + self._calculate_individual_offers(
+                rem_combos_first, cart_order, offers, catalog
+            )
+
+            # discount_amount é negativo; menor soma = maior desconto para o cliente
+            if sum(d.discount_amount for d in discounts_combos_first) < sum(
+                d.discount_amount for d in best_discounts
+            ):
+                best_discounts = discounts_combos_first
+
+        for discount in best_discounts:
+            receipt.add_discount(discount)

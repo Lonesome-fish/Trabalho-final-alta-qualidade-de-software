@@ -283,3 +283,40 @@ class SupermarketTest(unittest.TestCase):
 
         with pytest.raises(ValueError):
             teller.add_combo_offer([toothbrush, toothbrush])
+
+    def test_combo_never_increases_price_over_existing_offers(self):
+        scenarios = [
+            (SpecialOfferType.THREE_FOR_TWO, None, 3, 1, 35.00),
+            (SpecialOfferType.THREE_FOR_TWO, None, 6, 2, 70.00),
+            (SpecialOfferType.TEN_PERCENT_DISCOUNT, 50.0, 1, 1, 20.00),
+            (SpecialOfferType.TWO_FOR_AMOUNT, 12.0, 2, 1, 27.00),
+            (SpecialOfferType.TEN_PERCENT_DISCOUNT, 10.0, 1, 1, 22.50),
+        ]
+
+        for offer_type, argument, brush_qty, paste_qty, expected_total in scenarios:
+            catalog = FakeCatalog()
+            toothbrush = Product("toothbrush", ProductUnit.EACH)
+            toothpaste = Product("toothpaste", ProductUnit.EACH)
+            catalog.add_product(toothbrush, 10.00)
+            catalog.add_product(toothpaste, 15.00)
+
+            teller_without_combo = Teller(catalog)
+            teller_without_combo.add_special_offer(offer_type, toothbrush, argument)
+
+            teller_with_combo = Teller(catalog)
+            teller_with_combo.add_special_offer(offer_type, toothbrush, argument)
+            teller_with_combo.add_combo_offer([toothbrush, toothpaste], percentage=10.0)
+
+            cart_a = ShoppingCart()
+            cart_a.add_item_quantity(toothbrush, brush_qty)
+            cart_a.add_item_quantity(toothpaste, paste_qty)
+
+            cart_b = ShoppingCart()
+            cart_b.add_item_quantity(toothbrush, brush_qty)
+            cart_b.add_item_quantity(toothpaste, paste_qty)
+
+            total_without = teller_without_combo.checks_out_articles_from(cart_a).total_price()
+            total_with = teller_with_combo.checks_out_articles_from(cart_b).total_price()
+
+            assert total_with <= total_without
+            assert pytest.approx(total_with, 0.01) == expected_total        
