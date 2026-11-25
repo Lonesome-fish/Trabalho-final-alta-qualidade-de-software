@@ -2,8 +2,7 @@ from discount_strategies import ComboDiscountStrategy, DiscountCalculator
 from model_objects import Offer
 from receipt import Receipt
 
-#Teller funciona como uma espécie de caixa registradora, que verifica as ofertas e calcula o preço
-#
+
 class Teller:
 
     def __init__(self, catalog, discount_calculator=None):
@@ -12,10 +11,14 @@ class Teller:
         self.offers = {}
         self.combo_offers = {}
 
-    def add_special_offer(self, offer_type, product, argument):
-        self.offers[product] = Offer(offer_type, product, argument)
+    def add_special_offer(self, offer_or_type, product=None, argument=None) -> None:
+        """Registra uma oferta legada ou uma DiscountStrategy diretamente."""
+        if product is None and hasattr(offer_or_type, "product"):
+            self.offers[offer_or_type.product] = offer_or_type
+            return
+        self.offers[product] = Offer(offer_or_type, product, argument)
 
-    def add_combo_offer(self, products: list, percentage: float = 10.0):
+    def add_combo_offer(self, products: list, percentage: float = 10.0) -> None:
         strategy = ComboDiscountStrategy(products, percentage)
         self.combo_offers[frozenset(products)] = strategy
 

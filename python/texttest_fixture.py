@@ -9,7 +9,7 @@ from pathlib import Path
 
 from model_objects import Product, SpecialOfferType, ProductUnit
 from receipt_printer import ReceiptPrinter
-from shopping_cart import ShoppingCart
+from python_pytest.src.shopping_cart import ShoppingCart
 from teller import Teller
 from tests.fake_catalog import FakeCatalog
 
