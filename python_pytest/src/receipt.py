@@ -11,22 +11,29 @@ class Receipt:
     def __init__(self):
         self._items = []
         self._discounts = []
-        self.receipt_item_factory = ReceiptItem
+
     def total_price(self):
         total = 0
-        for item in self.items:
+        for item in self._items:
             total += item.total_price
-        for discount in self.discounts:
+        for discount in self._discounts:
             total += discount.discount_amount
         return total
 
+    def calculate_tax(self, tax_rate: float = 0.02) -> float:
+        if tax_rate < 0:
+            raise ValueError("A taxa de imposto não pode ser negativa.")
+        return self.total_price() * tax_rate
+
+    def total_price_with_tax(self, tax_rate: float = 0.02) -> float:
+        return self.total_price() + self.calculate_tax(tax_rate)
+
     def add_product(self, product, quantity, price, total_price):
-        self._items.append(self.receipt_item_factory(product, quantity, price, total_price))
+        self._items.append(ReceiptItem(product, quantity, price, total_price))
 
     def add_discount(self, discount):
         self._discounts.append(discount)
-    #Properties são usados para copiar o _items e _discounts para evitar acessar as informações
-    #diretamente e modificar os valores, garantindo que a lista original permaneça inalterada.
+
     @property
     def items(self):
         return self._items[:]

@@ -44,4 +44,4 @@ class Teller:
         return receipt
 
     def product_with_name(self, name):
-        return self.catalog.products.get(name, None)
+        return self.catalog.product_with_name(name)
