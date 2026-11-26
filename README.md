@@ -1,46 +1,70 @@
-_Support this and all my katas via [Patreon](https://www.patreon.com/EmilyBache)_
+# Supermarket Receipt — Modernização de Sistema Legado
 
-# The Supermarket Receipt Refactoring Kata
+Trabalho da disciplina **Alta Qualidade de Software**. Modernização incremental do kata
+[Supermarket Receipt](https://github.com/emilybache/SupermarketReceipt-Refactoring-Kata)
+(versão `python_pytest`): testes de caracterização, refatoração com padrões de projeto,
+combos promocionais e análise de segurança.
 
-Watch the ["Detangle Bad Code Challenge"](https://youtu.be/EWB-VhEUoHE) introduction to this exercise.
+## Requisitos
 
-This is a variation of a popular kata described in http://codekata.com/kata/kata01-supermarket-pricing/. The aim of the exercise is to build automated tests for this code, refactor it, and add a new feature. 
+- Python 3.10 ou superior
+- Dependências em `python_pytest/requirements.txt` (versões fixadas)
 
-The supermarket has a catalog with different types of products (rice, apples, milk, toothbrushes,...). Each product has a price, and the total price of the shopping cart is the total of all the prices of the items. You get a receipt that details the items you've bought, the total price and any discounts that were applied.
+## Como rodar
 
-The supermarket runs special deals, e.g.
- - Buy two toothbrushes, get one free. Normal toothbrush price is €0.99
- - 20% discount on apples, normal price €1.99 per kilo.
- - 10% discount on rice, normal price €2.49 per bag
- - Five tubes of toothpaste for €7.49, normal price €1.79
- - Two boxes of cherry tomatoes for €0.99, normal price €0.69 per box.
+```bash
+cd python_pytest
+python -m venv .venv
+.venv\Scripts\activate          # Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+python -m pytest
+```
 
-These are just examples: the actual special deals change each week.
+Cobertura:
 
-Create some test cases and aim to get good enough code coverage that you feel confident to do some refactoring.
+```bash
+python -m coverage run -m pytest
+python -m coverage report
+```
 
-When you have good test cases, identify code smells such as Long Method, Feature Envy. Apply relevant refactorings.
+## Análise de segurança
 
-When you're confident you can handle this code, implement the new feature described below
+```bash
+pip install bandit pip-audit safety
+bandit -r src
+pip-audit -r requirements.txt
+safety scan          # exige login gratuito na Safety CLI
+```
 
-## New feature: discounted bundles
+As saídas do Bandit antes e depois da refatoração estão em `python_pytest/seguranca/`.
+Em `src/` não houve achados; em `tests/` só aparece B101 (uso de `assert`), que é esperado no pytest.
 
-The owner of the system has a new feature request. They want to introduce a new kind of special offer - bundles. When you buy all the items in a product bundle
-you get 10% off the total for those items. For example you could make a bundle offer of one toothbrush and one toothpaste. If you then you buy one toothbrush and one toothpaste, the discount will be 10% of €0.99 + €1.79. If you instead buy two toothbrushes and one toothpaste, you get the same discount as if you'd bought only one of each - ie only complete bundles are discounted.
+## Estrutura
 
-## New feature: HTML receipt
+```
+python_pytest/
+  src/
+    catalog.py               interface do catálogo de produtos
+    model_objects.py         Product, Offer, Discount e enums
+    shopping_cart.py         carrinho: guarda itens e valida quantidades
+    teller.py                caixa: registra ofertas/combos e faz o checkout
+    discount_strategies.py   estratégias de desconto, factory e calculadora
+    receipt.py               recibo e cálculo do total
+  tests/                     testes pytest (legado, ofertas, combos, recibo)
+python/                      versão original sem pytest (não modificada)
+```
 
-Currently we print a traditional ticket receipt. Now being a modern business we'd
-like to be able to print or send a HTML version of the same receipt. All the data 
-and number formatting should be the same. However the layout should be html. 
-You don't have to worry about the HTML template - a designer will care of that - but 
-we do need someone to keep duplication between the reports to a bare minimum.
+## Decisões de arquitetura
 
-## Start with the refactoring
+- **Strategy:** cada regra de desconto é uma classe (`ThreeForTwoStrategy`,
+  `PercentageDiscountStrategy`, `XForAmountStrategy`, `ComboDiscountStrategy`).
+- **Factory:** `DiscountStrategyFactory` escolhe a estratégia pelo tipo da oferta.
+- **DiscountCalculator:** concentra o cálculo; o carrinho só guarda itens e o Teller orquestra.
+- **Combos:** 10% sobre os conjuntos completos. Nenhuma unidade recebe dois descontos, e o
+  sistema escolhe a combinação mais barata para o cliente.
+- **Mudanças intencionais de comportamento:** "2 por X" com quantidade ímpar, fração em
+  produtos por kg nas ofertas de pacote e validação de quantidades no carrinho.
 
-If you would like to just do the refactoring part of this exercise, you can instead check out the 'with_tests' branch. 
-Those tests have reasonably good coverage and should support most kinds of refactorings you'd like to do.
+## Licença
 
-## Use this exercise in a Learning Hour
-
-You can use the [Supermarket Receipt](https://sammancoaching.org/kata_descriptions/supermarket_receipt.html) Kata in learning hours if you are using the [Samman](https://sammancoaching.org) coaching method.
+Baseado no kata de Emily Bache. Ver `license.txt`.
